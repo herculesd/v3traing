@@ -1,0 +1,89 @@
+images:
+  gsuite: public.ecr.aws/dnxsolutions/aws-google-auth:latest
+  terraform: public.ecr.aws/dnxsolutions/terraform:1.0.0-dnx1
+  aws: public.ecr.aws/dnxsolutions/aws-v2:2.2.9-dnx1
+
+required_version: ">= 0.7.2"
+
+workspaces:
+  ### NONPROD
+  nonprod-us-east-2-dev:
+    aws_region: us-east-2
+    aws_account_id: "141553629067"      # Nonprod Account Id
+    org_name: v3training                # Organization Name
+    account_name: nonprod
+    notifications_sns_topic_arn: ""     # from Audit account
+    eks:
+      enabled: true
+      name: dev-apps
+    rds:
+      serverless_dbs: []
+      aurora_dbs: []
+      dbs:
+      - name: "v3training-db"
+        environment_name: "dev"
+        user: "admin"
+        retention: 1
+        instance_class: "db.t3.small"
+        multi_az: false
+        allocated_storage: 20
+        max_allocated_storage: 200
+        apply_immediately: true
+        engine: "mysql"
+        engine_version: "5.7"
+        parameter_group_name: ""
+        port: 3306
+        allow_cidrs:        # Allow these CIDRs connect to this DB
+        - "10.47.0.0/16"
+        snapshot_identifier: ""
+        shutdown_schedule:  # Shuts down the DB at night to save costs (use only on non-production)
+          enabled: true
+          # Weekdays from 8:00 to 19:00 (GMT-3)
+          cron_start: "0 11 ? * MON-FRI *" # 11:00 UTC -> 8:00 (GMT-3)
+          cron_stop: "0 22 ? * MON-FRI *" # 22:00 UTC -> 19:00 (GMT-3)
+        notifications_sns:
+          enabled: false
+        backup: false
+        storage_encrypted: false # t2.micro does not support encryption
+        skip_final_snapshot: true
+
+  ### PROD
+  prod-us-east-2-default:
+    aws_region: us-east-2
+    aws_account_id: "422314337408"      # Prod Account Id
+    org_name: v3training                # Organization Name
+    account_name: prod
+    notifications_sns_topic_arn: ""     # from Audit account
+    eks:
+      enabled: true
+      name: prod-apps
+    rds:
+      serverless_dbs: []
+      aurora_dbs: []
+      dbs:
+      - name: "v3training-db"
+        environment_name: "prod"
+        user: "admin"
+        retention: 1
+        instance_class: "db.t3.small"
+        multi_az: false
+        allocated_storage: 20
+        max_allocated_storage: 200
+        apply_immediately: true
+        engine: "mysql"
+        engine_version: "5.7"
+        parameter_group_name: ""
+        port: 3306
+        allow_cidrs:        # Allow these CIDRs connect to this DB
+        - "10.57.0.0/16"
+        snapshot_identifier: ""
+        shutdown_schedule:  # Shuts down the DB at night to save costs (use only on non-production)
+          enabled: true
+          # Weekdays from 8:00 to 19:00 (GMT-3)
+          cron_start: "0 11 ? * MON-FRI *" # 11:00 UTC -> 8:00 (GMT-3)
+          cron_stop: "0 22 ? * MON-FRI *" # 22:00 UTC -> 19:00 (GMT-3)
+        notifications_sns:
+          enabled: false
+        backup: false
+        storage_encrypted: true # t2.micro does not support encryption
+        skip_final_snapshot: true

@@ -1,0 +1,35 @@
+server:
+  affinity: |
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ template "vault.name" . }}
+              app.kubernetes.io/instance: "{{ .Release.Name }}"
+              component: server
+          topologyKey: topology.kubernetes.io/zone
+  ha:
+    config: |
+      ui = true
+
+      listener "tcp" {
+        tls_disable = 1
+        address = "[::]:8200"
+        cluster_address = "[::]:8201"
+        telemetry {
+            unauthenticated_metrics_access = true
+         }
+      }
+      storage "consul" {
+        path = "vault"
+        address = "consul-consul-server.consul:8500"
+      }
+      api_addr = "https://${hostname}"
+
+      # Example configuration for using auto-unseal, using Google Cloud KMS. The
+      # GKMS keys must already exist, and the cluster must have a service account
+      # that is authorized to access GCP KMS.
+      seal "awskms" {
+        region = "${region}"
+        kms_key_id = "${kms_key_id}"
+      }

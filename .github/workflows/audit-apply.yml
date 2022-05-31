@@ -1,0 +1,65 @@
+name: Audit - Terraform Apply
+
+on:
+  workflow_dispatch:
+    inputs:
+      account:
+        description: 'Target Account [audit]'
+        required: true
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_INFRA_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_INFRA_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: us-east-1
+  WORKSPACE_US: audit-us-east-1-default
+  WORKSPACE_SP: audit-sa-east-1-default
+
+jobs:
+  terraform_apply:
+    name: Apply the modifications
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Download TF plan - Audit US
+        if: ${{ github.event.inputs.account == 'audit' }}
+        uses: dawidd6/action-download-artifact@v2
+        with: 
+          workflow: audit-plan.yml
+          workflow_conclusion: success
+          name: .terraform-plan-${{ env.WORKSPACE_US }}
+          path: audit/
+
+      - name: Terraform apply - Audit US
+        if: ${{ github.event.inputs.account == 'audit' }}
+        env:
+          AWS_ACCOUNT_ID: '171990700439'
+          AWS_REGION: us-east-1
+          WORKSPACE: ${{ env.WORKSPACE_US }}
+        run: |
+          cd audit && make init apply
+
+      - name: Download TF plan - Audit SP
+        if: ${{ github.event.inputs.account == 'audit' }}
+        uses: dawidd6/action-download-artifact@v2
+        with: 
+          workflow: audit-plan.yml
+          workflow_conclusion: success
+          name: .terraform-plan-${{ env.WORKSPACE_SP }}
+          path: audit/
+
+      - name: Terraform apply - Audit SP
+        if: ${{ github.event.inputs.account == 'audit' }}
+        env:
+          AWS_ACCOUNT_ID: '171990700439'
+          AWS_REGION: sa-east-1
+          WORKSPACE: ${{ env.WORKSPACE_SP }}
+        run: |
+          cd audit && make init apply

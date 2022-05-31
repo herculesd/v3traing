@@ -1,0 +1,100 @@
+images:
+  gsuite: public.ecr.aws/dnxsolutions/aws-google-auth:latest
+  terraform: public.ecr.aws/dnxsolutions/terraform:1.0.0-dnx1
+  aws: public.ecr.aws/dnxsolutions/aws-v2:2.2.9-dnx1
+
+required_version: ">= 0.7.2"
+
+workspaces:
+  ### SHARED
+  shared-services-us-east-2-default:
+    aws_region: us-east-2
+    aws_account_id: "955364924205"      # Shared Services Account Id
+    org_name: v3training                # Organization Name
+    cloudtrail:
+      enabled: true                     # enable when NOT using organization cloudtrail
+      global: true                      # enable in one region only to avoid duplication of events
+      s3_bucket_name: v3training-audit-cloudtrail-us-east-2
+      kms_key_arn: arn:aws:kms:us-east-2:916396898474:key/538c9830-a3ad-4eb8-b782-9068ef6ecb9a
+      log_group_retention_in_days: 365
+      alarms:
+        enabled: false
+        mode: light
+        email: "aws@dnxbrasil.com"
+        slack_endpoint: https://hooks.slack.com/services/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
+    guardduty:
+      enabled: true
+      admin_account_id: "916396898474"  # Audit Account
+      alarms:
+        enabled: false
+        slack_endpoint: https://hooks.slack.com/services/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
+    securityhub:
+      enabled: true
+      admin_account_id: "916396898474"  # Audit Account
+    config:
+      enabled: false
+      global: true                      # enable in one region only to avoid duplication of events
+    ebs_encryption_by_default:
+      enabled: true
+
+  ### PROD
+  prod-us-east-2-default:
+    aws_region: us-east-2
+    aws_account_id: "422314337408"      # Prod Account Id
+    org_name: v3training                # Organization Name
+    cloudtrail:
+      enabled: true                     # enable when NOT using organization cloudtrail
+      global: true                      # enable in one region only to avoid duplication of events
+      s3_bucket_name: v3training-audit-cloudtrail-us-east-2
+      kms_key_arn: arn:aws:kms:us-east-2:916396898474:key/538c9830-a3ad-4eb8-b782-9068ef6ecb9a
+      log_group_retention_in_days: 365
+      alarms:
+        enabled: false
+        mode: light
+        email: "aws@dnxbrasil.com"
+        slack_endpoint: https://hooks.slack.com/services/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
+    guardduty:
+      enabled: true
+      admin_account_id: "916396898474"  # Audit Account
+      alarms:
+        enabled: false
+        slack_endpoint: https://hooks.slack.com/services/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
+    securityhub:
+      enabled: true
+      admin_account_id: "916396898474"  # Audit Account
+    config:
+      enabled: false
+      global: true                      # enable in one region only to avoid duplication of events
+    ebs_encryption_by_default:
+      enabled: true
+
+  ### NONPROD
+  nonprod-us-east-2-dev:
+    aws_region: us-east-2
+    aws_account_id: "141553629067"      # Nonprod Account Id
+    org_name: v3training                # Organization Name
+    cloudtrail:
+      enabled: true                     # enable when NOT using organization cloudtrail
+      global: true                      # enable in one region only to avoid duplication of events
+      s3_bucket_name: v3training-audit-cloudtrail-us-east-2
+      kms_key_arn: arn:aws:kms:us-east-2:916396898474:key/538c9830-a3ad-4eb8-b782-9068ef6ecb9a
+      log_group_retention_in_days: 365
+      alarms:
+        enabled: false
+        mode: light
+        email: "aws@dnxbrasil.com"
+        slack_endpoint: https://hooks.slack.com/services/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
+    guardduty:
+      enabled: true
+      admin_account_id: "916396898474"  # Audit Account
+      alarms:
+        enabled: false
+        slack_endpoint: https://hooks.slack.com/services/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
+    securityhub:
+      enabled: true
+      admin_account_id: "916396898474"  # Audit Account
+    config:
+      enabled: false
+      global: true                      # enable in one region only to avoid duplication of events
+    ebs_encryption_by_default:
+      enabled: true

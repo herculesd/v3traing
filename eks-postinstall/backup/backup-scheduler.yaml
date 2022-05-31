@@ -1,0 +1,16 @@
+apiVersion: resources.cattle.io/v1
+kind: Backup
+metadata:
+  name: ${namespace}-backup
+  annotations:
+    field.cattle.io/description: Backup all resources from namespace ${namespace}
+spec:
+  encryptionConfigSecretName: encryptionconfig
+  resourceSetName: backup-${namespace}
+  retentionCount: ${retention}
+  schedule: ${scheduler}
+  storageLocation:
+    s3:
+      bucketName: ${bucket_name}
+      folder: backup
+      region: ${region}

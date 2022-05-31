@@ -1,0 +1,66 @@
+name: EKS-Postinstall - Terraform Apply
+
+on:
+  workflow_dispatch:
+    inputs:
+      account:
+        description: 'Target Account [nonprod/prod]'
+        required: true
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_INFRA_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_INFRA_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: us-east-1
+  WORKSPACE_NONPROD: nonprod-us-east-1-dev
+  WORKSPACE_PROD: prod-sa-east-1
+
+jobs:
+  terraform_apply:
+    name: Apply the modifications
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Download TF plan - nonprod
+        if: ${{ github.event.inputs.account == 'nonprod' }}
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: eks-postinstall-plan.yml
+          workflow_conclusion: success
+          name: .terraform-plan-${{ env.WORKSPACE_NONPROD }}
+          path: eks-postinstall/
+
+      - name: Terraform apply - nonprod
+        if: ${{ github.event.inputs.account == 'nonprod' }}
+        env:
+          AWS_ACCOUNT_ID: '015312168739'
+          AWS_REGION: us-east-1
+          WORKSPACE: ${{ env.WORKSPACE_NONPROD }}
+        run: |
+          cd eks-postinstall && make init apply
+
+      - name: Download TF plan - prod
+        if: ${{ github.event.inputs.account == 'prod' }}
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: eks-postinstall-plan.yml
+          workflow_conclusion: success
+          name: .terraform-plan-${{ env.WORKSPACE_PROD }}
+          path: eks-postinstall/
+
+      - name: Terraform apply - prod
+        if: ${{ github.event.inputs.account == 'prod' }}
+        env:
+          AWS_ACCOUNT_ID: '350882285343'
+          AWS_REGION: sa-east-1
+          WORKSPACE: ${{ env.WORKSPACE_PROD }}
+        run: |
+          cd eks-postinstall && make init apply
+

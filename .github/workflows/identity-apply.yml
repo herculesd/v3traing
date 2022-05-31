@@ -1,0 +1,84 @@
+name: Identity - Terraform Apply
+
+on:
+  workflow_dispatch:
+    inputs:
+      account:
+        description: 'Target Account [shared/nonprod/prod]'
+        required: true
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_INFRA_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_INFRA_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: us-east-1
+  WORKSPACE_SHARED: shared-services-us-east-1-default
+  WORKSPACE_NONPROD: sandbox-us-east-1-default
+  WORKSPACE_PROD: prod-sa-east-1-default
+
+jobs:
+  terraform_apply:
+    name: Apply the modifications
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Download TF plan - shared
+        if: ${{ github.event.inputs.account == 'shared' }}
+        uses: dawidd6/action-download-artifact@v2
+        with: 
+          workflow: identity-plan.yml
+          workflow_conclusion: success
+          name: .terraform-plan-${{ env.WORKSPACE_SHARED }}
+          path: identity/
+
+      - name: Terraform apply - shared
+        if: ${{ github.event.inputs.account == 'shared' }}
+        env:
+          AWS_ACCOUNT_ID: '815538987058'
+          AWS_REGION: us-east-1
+          WORKSPACE: ${{ env.WORKSPACE_SHARED }}
+        run: |
+          cd identity && make init apply
+
+      - name: Download TF plan - nonprod
+        if: ${{ github.event.inputs.account == 'nonprod' }}
+        uses: dawidd6/action-download-artifact@v2
+        with: 
+          workflow: identity-plan.yml
+          workflow_conclusion: success
+          name: .terraform-plan-${{ env.WORKSPACE_NONPROD }}
+          path: identity/
+
+      - name: Terraform apply - nonprod
+        if: ${{ github.event.inputs.account == 'nonprod' }}
+        env:
+          AWS_ACCOUNT_ID: '015312168739'
+          AWS_REGION: us-east-1
+          WORKSPACE: ${{ env.WORKSPACE_NONPROD }}
+        run: |
+          cd identity && make init apply
+
+      - name: Download TF plan - prod
+        if: ${{ github.event.inputs.account == 'prod' }}
+        uses: dawidd6/action-download-artifact@v2
+        with: 
+          workflow: identity-plan.yml
+          workflow_conclusion: success
+          name: .terraform-plan-${{ env.WORKSPACE_PROD }}
+          path: identity/
+
+      - name: Terraform apply - prod
+        if: ${{ github.event.inputs.account == 'prod' }}
+        env:
+          AWS_ACCOUNT_ID: '350882285343'
+          AWS_REGION: sa-east-1
+          WORKSPACE: ${{ env.WORKSPACE_PROD }}
+        run: |
+          cd identity && make init apply

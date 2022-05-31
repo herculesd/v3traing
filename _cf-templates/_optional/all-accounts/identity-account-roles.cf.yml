@@ -1,0 +1,234 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: "Identity Account Roles (rev:1)"
+
+Parameters:
+  OrgName:
+    Type: String
+    Description: Name of Organization
+  MaxSessionDuration:
+    Type: Number
+    Default: 43200
+  SAMLProviderARN:
+    Type: String
+    Default: ""
+    Description: ARN of SAML Provider (if different than default)
+
+Conditions:
+  HasSAMLProviderARN: !Not [!Equals [!Ref SAMLProviderARN, ""]]
+
+#====================================================================================================
+Resources:
+#====================================================================================================
+  AdministratorAccess:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: AdministratorAccess
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !If 
+                - HasSAMLProviderARN
+                - !Ref SAMLProviderARN
+                - !Sub "arn:aws:iam::${AWS::AccountId}:saml-provider/${OrgName}-sso"
+            Action:
+              - 'sts:AssumeRoleWithSAML'
+            Condition:
+              StringEquals:
+                "SAML:aud": "https://signin.aws.amazon.com/saml"
+      Path: /
+      MaxSessionDuration: !Ref MaxSessionDuration
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+
+  DataScientist:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: DataScientist
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !If 
+                - HasSAMLProviderARN
+                - !Ref SAMLProviderARN
+                - !Sub "arn:aws:iam::${AWS::AccountId}:saml-provider/${OrgName}-sso"
+            Action:
+              - 'sts:AssumeRoleWithSAML'
+            Condition:
+              StringEquals:
+                "SAML:aud": "https://signin.aws.amazon.com/saml"
+      Path: /
+      MaxSessionDuration: !Ref MaxSessionDuration
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/job-function/DataScientist
+
+  DatabaseAdministrator:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: DatabaseAdministrator
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !If 
+                - HasSAMLProviderARN
+                - !Ref SAMLProviderARN
+                - !Sub "arn:aws:iam::${AWS::AccountId}:saml-provider/${OrgName}-sso"
+            Action:
+              - 'sts:AssumeRoleWithSAML'
+            Condition:
+              StringEquals:
+                "SAML:aud": "https://signin.aws.amazon.com/saml"
+      Path: /
+      MaxSessionDuration: !Ref MaxSessionDuration
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/job-function/DatabaseAdministrator
+
+  NetworkAdministrator:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: NetworkAdministrator
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !If 
+                - HasSAMLProviderARN
+                - !Ref SAMLProviderARN
+                - !Sub "arn:aws:iam::${AWS::AccountId}:saml-provider/${OrgName}-sso"
+            Action:
+              - 'sts:AssumeRoleWithSAML'
+            Condition:
+              StringEquals:
+                "SAML:aud": "https://signin.aws.amazon.com/saml"
+      Path: /
+      MaxSessionDuration: !Ref MaxSessionDuration
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/job-function/NetworkAdministrator
+
+  PowerUserAccess:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: PowerUserAccess
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !If 
+                - HasSAMLProviderARN
+                - !Ref SAMLProviderARN
+                - !Sub "arn:aws:iam::${AWS::AccountId}:saml-provider/${OrgName}-sso"
+            Action:
+              - 'sts:AssumeRoleWithSAML'
+            Condition:
+              StringEquals:
+                "SAML:aud": "https://signin.aws.amazon.com/saml"
+      Path: /
+      MaxSessionDuration: !Ref MaxSessionDuration
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/PowerUserAccess
+
+  SecurityAudit:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: SecurityAudit
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !If 
+                - HasSAMLProviderARN
+                - !Ref SAMLProviderARN
+                - !Sub "arn:aws:iam::${AWS::AccountId}:saml-provider/${OrgName}-sso"
+            Action:
+              - 'sts:AssumeRoleWithSAML'
+            Condition:
+              StringEquals:
+                "SAML:aud": "https://signin.aws.amazon.com/saml"
+      Path: /
+      MaxSessionDuration: !Ref MaxSessionDuration
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/SecurityAudit
+
+  SupportUser:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: SupportUser
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !If 
+                - HasSAMLProviderARN
+                - !Ref SAMLProviderARN
+                - !Sub "arn:aws:iam::${AWS::AccountId}:saml-provider/${OrgName}-sso"
+            Action:
+              - 'sts:AssumeRoleWithSAML'
+            Condition:
+              StringEquals:
+                "SAML:aud": "https://signin.aws.amazon.com/saml"
+      Path: /
+      MaxSessionDuration: !Ref MaxSessionDuration
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/job-function/SupportUser
+
+  SystemAdministrator:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: SystemAdministrator
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !If 
+                - HasSAMLProviderARN
+                - !Ref SAMLProviderARN
+                - !Sub "arn:aws:iam::${AWS::AccountId}:saml-provider/${OrgName}-sso"
+            Action:
+              - 'sts:AssumeRoleWithSAML'
+            Condition:
+              StringEquals:
+                "SAML:aud": "https://signin.aws.amazon.com/saml"
+      Path: /
+      MaxSessionDuration: !Ref MaxSessionDuration
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/job-function/SystemAdministrator
+
+  ViewOnlyAccess:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: ViewOnlyAccess
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !If 
+                - HasSAMLProviderARN
+                - !Ref SAMLProviderARN
+                - !Sub "arn:aws:iam::${AWS::AccountId}:saml-provider/${OrgName}-sso"
+            Action:
+              - 'sts:AssumeRoleWithSAML'
+            Condition:
+              StringEquals:
+                "SAML:aud": "https://signin.aws.amazon.com/saml"
+      Path: /
+      MaxSessionDuration: !Ref MaxSessionDuration
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/job-function/ViewOnlyAccess
+
+
+
+
+
+

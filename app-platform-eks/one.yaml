@@ -1,0 +1,121 @@
+images:
+  gsuite: public.ecr.aws/dnxsolutions/aws-google-auth:latest
+  azure: public.ecr.aws/dnxsolutions/docker-aws-azure-ad:latest
+  terraform: public.ecr.aws/dnxsolutions/terraform:1.0.0-dnx1
+  aws: public.ecr.aws/dnxsolutions/aws-v2:2.2.9-dnx1
+
+required_version: ">= 0.7.2"
+
+plugins:
+  dnx-assume:
+    package: one-cli-plugin-dnx-assume==0.1.3
+    module: 'plugin_dnx_assume'
+    parameters:
+      aws_role: DNXAccess
+      aws_account_id: "058100963274" # client master account
+  kube:
+    package: one-cli-plugin-kube==0.5.2
+    module: 'plugin_kube'
+    parameters:
+      cluster_name: "dev-apps"
+      aws_default_region: us-east-2
+      aws_assume_role: true
+
+workspaces:
+  nonprod-us-east-2-dev:
+    account_name: nonprod          
+    org_name: v3training                # Organization Name
+    aws_region: us-east-2
+    aws_account_id: "141553629067"      # Nonprod Account Id
+    aws:
+      account_id: "141553629067"
+      role: InfraDeployAccess
+    eks:
+      enabled: true
+      launch_template:
+        name: default
+        volume_size: 30
+        volume_type: "gp2"
+        delete_on_termination: true
+      name: "dev-apps"
+      version: 1.21
+      node_group:
+          name: dev-apps
+          desired_capacity: 3
+          max_capacity: 5
+          min_capacity: 3
+          # all instances must be at least large
+          instance_types: ["t3a.large", "t3.large", "t2.large"]                             
+      map_roles:
+        - rolearn: "arn:aws:iam::141553629067:role/InfraDeployAccess"
+          username: "Administrator"
+          groups:
+            - system:masters
+        - rolearn: "arn:aws:iam::141553629067:role/v3trainingDNXAccess"
+          username: "Administrator"
+          groups:
+            - system:masters
+        - rolearn: "arn:aws:iam::141553629067:role/AdministratorAccess"
+          username: "Administrator"
+          groups:
+            - system:masters
+      map_users: []
+        # - userarn  = string
+        #   username = string
+        #   groups   = list(string)
+      map_accounts: []
+        # - rolearn  = string
+        #   username = string
+        #   groups   = list(string)
+
+      trust_account_ids: []
+      repositories: []
+
+  prod-us-east-2-default:
+    account_name: prod          
+    org_name: v3training                # Organization Name
+    aws_region: us-east-2
+    aws_account_id: "422314337408"      # Prod Account Id
+    aws:
+      account_id: "422314337408"
+      role: InfraDeployAccess
+    eks:
+      enabled: true
+      launch_template:
+        name: default
+        volume_size: 30
+        volume_type: "gp2"
+        delete_on_termination: true
+      name: "prod-apps"
+      version: 1.21
+      node_group:
+          name: prod-apps
+          desired_capacity: 3
+          max_capacity: 5
+          min_capacity: 3
+          # all instances must be at least large
+          instance_types: ["t3a.large", "t3.large", "t2.large"]                  
+      map_roles:
+        - rolearn: "arn:aws:iam::422314337408:role/InfraDeployAccess"
+          username: "Administrator"
+          groups:
+            - system:masters
+        - rolearn: "arn:aws:iam::422314337408:role/v3trainingDNXAccess"
+          username: "Administrator"
+          groups:
+            - system:masters
+        - rolearn: "arn:aws:iam::422314337408:role/AdministratorAccess"
+          username: "Administrator"
+          groups:
+            - system:masters
+      map_users: []
+        # - userarn  = string
+        #   username = string
+        #   groups   = list(string)
+      map_accounts: []
+        # - rolearn  = string
+        #   username = string
+        #   groups   = list(string)
+
+      trust_account_ids: []
+      repositories: []      

@@ -1,0 +1,59 @@
+name: Audit - Terraform Plan
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'audit/**'
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_INFRA_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_INFRA_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: us-east-1
+  WORKSPACE_US: audit-us-east-1-default
+  WORKSPACE_SP: audit-sa-east-1-default
+
+jobs:
+  terraform_plan:
+    name: Planning modifications
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Terraform plan - Audit US
+        env:
+          AWS_ACCOUNT_ID: '171990700439'
+          AWS_REGION: us-east-1
+          WORKSPACE: ${{ env.WORKSPACE_US }}
+        run: |
+          cd audit && make init plan
+         
+      - name: Archive terraform state artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: .terraform-plan-${{ env.WORKSPACE_US }}
+          path: audit/.terraform-plan-${{ env.WORKSPACE_US }}
+          if-no-files-found: error
+
+      - name: Terraform plan - Audit SP
+        env:
+          AWS_ACCOUNT_ID: '171990700439'
+          AWS_REGION: sa-east-1
+          WORKSPACE: ${{ env.WORKSPACE_SP }}
+        run: |
+          cd audit && make init plan
+
+      - name: Archive terraform state artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: .terraform-plan-${{ env.WORKSPACE_SP }}
+          path: audit/.terraform-plan-${{ env.WORKSPACE_SP }}
+          if-no-files-found: error

@@ -1,0 +1,199 @@
+images:
+  gsuite: public.ecr.aws/dnxsolutions/aws-google-auth:latest
+  azure: dnxsolutions/docker-aws-azure-ad:1.0.0
+  terraform: public.ecr.aws/dnxsolutions/terraform:1.0.0-dnx1
+  aws: public.ecr.aws/dnxsolutions/aws-v2:2.2.9-dnx1
+
+required_version: ">= 0.7.2"
+
+plugins:
+  dnx-assume:
+    package: one-cli-plugin-dnx-assume==0.1.3
+    module: 'plugin_dnx_assume'
+    parameters:
+      aws_role: DNXAccess
+      aws_account_id: "058100963274"
+  kube:
+    package: one-cli-plugin-kube==0.5.2
+    module: 'plugin_kube'
+    parameters:
+      cluster_name: "prod-apps"
+      aws_default_region:  us-east-2
+      aws_assume_role: true
+
+workspaces:
+  nonprod-us-east-2-dev:  # one workspace per EKS cluster
+    aws:
+      account_id: "141553629067"
+      role: InfraDeployAccess  
+    aws_region: us-east-2
+    aws_account_id: "141553629067"
+    environment_name: dev
+    domain: dev.cloud.v3training.dnxbrasil.com
+    certificate_arn: arn:aws:acm:us-east-2:141553629067:certificate/266984eb-40ab-44f5-9dbb-6fb6db6d944f
+    argocd:
+      enable: true
+      hostname: argocd
+      load_balance_type: internal
+      argocd_version: 3.3.5
+      rollout_version: 2.0.0
+      notification_version: 1.3.0
+    rancher:
+      enable: true
+      hostname: rancher
+      replicas: 1
+      load_balance_type: internal
+      version: 2.6.0
+    vault:
+      enable: false
+      replicas: 3
+      version_chart: 0.16.1
+      hostname: vault-auth.dev.cloud.v3training.dnxbrasil.com
+      load_balance_type: internal
+      name: vault-auth
+    rancher_monitoring:
+      enable: true
+      storage_prometheus: 200Gi
+      storage_grafana: 5Gi
+      cpu_requests_prometheus: 1500m
+      memory_requests_prometheus: 1500Mi
+      cpu_limit_prometheus: 1000m
+      memory_limit_prometheus: 4000Mi
+      retention: 7d
+    rancher_logging:
+      enable: true
+      storage: 50Gi
+      retention_period: 168h 
+      table_retention_period: 168h
+      reject_old_samples_max_age: 24h
+      max_query_lookback: 72h
+      namespaces:
+        - v3training-infra
+    istio:
+      enable: true
+    rancher_backup:
+      enable: true
+      scheduler_enable: true
+      backup_namespaces:
+        - v3training-infra
+      scheduler: 15 2 * * *
+      bucket_name: dev-v3training-rancher-eks-backup
+      retention: 7
+      region: us-east-2
+    kubeseal:
+      enable: true
+      version: 1.16.1
+    grafana_ingress:
+      enable: true
+      load_balance_type: internal # internal or internet-facing
+      name: grafana      
+    cluster_oidc_issuer_url: https://oidc.eks.us-east-2.amazonaws.com/id/2F6235317145D07574B4265C9EB90340
+    create_certficate: true
+    cluster_name: dev-apps
+    oidc_provider_arn: arn:aws:iam::141553629067:oidc-provider/oidc.eks.us-east-2.amazonaws.com/id/2F6235317145D07574B4265C9EB90340
+    cloudwatch_logs:
+      enabled: false
+      retention: 30
+    cloudwatch_metrics:
+      enabled: false
+    cluster_autoscaler:
+      enabled: true
+    load_balancer_controller:
+      enabled: true
+    metrics_server:
+      enabled: true
+    node_termination_handler:
+      enabled: true   
+    external_dns:
+      enabled: true
+      cluster_id: devapps
+      domains: 
+        - dev.cloud.v3training.dnxbrasil.com
+          
+  prod-us-east-2-default:  # one workspace per EKS cluster
+    aws:
+      account_id: "422314337408"
+      role: InfraDeployAccess  
+    aws_region: us-east-2
+    aws_account_id: "422314337408"
+    environment_name: prod
+    domain: prod.cloud.v3training.dnxbrasil.com
+    certificate_arn: arn:aws:acm:us-east-2:422314337408:certificate/ab69b02b-f3a7-4314-a759-357bea7ca26b
+    argocd:
+      enable: true
+      hostname: argocd
+      load_balance_type: internal
+      argocd_version: 3.3.5
+      rollout_version: 2.0.0
+      notification_version: 1.3.0
+    rancher:
+      enable: true
+      hostname: rancher
+      replicas: 4
+      load_balance_type: internal
+      version: 2.6.0
+    vault:
+      enable: false
+      replicas: 3
+      version_chart: 0.16.1
+      hostname: vault-auth.prod.cloud.v3training.dnxbrasil.com
+      load_balance_type: internal
+      name: vault-auth
+    rancher_monitoring:
+      enable: true
+      storage_prometheus: 200Gi
+      storage_grafana: 5Gi
+      cpu_requests_prometheus: 1000m
+      memory_requests_prometheus: 2000Mi
+      cpu_limit_prometheus: 1000m
+      memory_limit_prometheus: 2000Mi
+      retention: 90d
+    rancher_logging:
+      enable: false
+      storage: 300Gi
+      retention_period: 720h 
+      table_retention_period: 720h
+      reject_old_samples_max_age: 24h
+      max_query_lookback: 168h
+      namespaces:
+        - v3training-infra
+    istio:
+      enable: true
+    rancher_backup:
+      enable: false
+      scheduler_enable: true
+      backup_namespaces:
+        - v3training-infra
+      scheduler: 15 2 * * *
+      bucket_name: prod-v3training-rancher-eks-backup
+      retention: 30
+      region: us-east-2
+    kubeseal:
+      enable: true
+      version: 1.16.1       
+    grafana_ingress:
+      enable: true
+      load_balance_type: internal # internal or internet-facing
+      name: grafana
+    cluster_oidc_issuer_url: https://oidc.eks.us-east-2.amazonaws.com/id/48D48FB04AAF2E3EA08B4574AE2765FC
+    create_certficate: true
+    cluster_name: prod-apps
+    oidc_provider_arn: arn:aws:iam::422314337408:oidc-provider/oidc.eks.us-east-2.amazonaws.com/id/48D48FB04AAF2E3EA08B4574AE2765FC
+    cloudwatch_logs:
+      enabled: false
+      retention: 30
+    cloudwatch_metrics:
+      enabled: false
+    cluster_autoscaler:
+      enabled: true
+    load_balancer_controller:
+      enabled: true
+    metrics_server:
+      enabled: true
+    node_termination_handler:
+      enabled: true   
+    external_dns:
+      enabled: true
+      cluster_id: prodapps
+      domains: 
+        - prod.cloud.v3training.dnxbrasil.com

@@ -1,0 +1,79 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Billing IAM Roles (rev:1)"
+
+Parameters:
+  IdentityProviderMetadataDocument:
+    Description: Paste the contents of the XML Document provided by your SAML Provider (leave blank to disable this feature). This creates IAM role 'BillingAccess'.
+    Type: String
+    Default: ""
+  DNX:
+    Description: Allows DNX access to billing
+    Type: String
+    Default: "false"
+    AllowedValues:
+      - "true"
+      - "false"
+  OrgName:
+    Description: Name of your organization for the purpose of using in resource naming
+    Type: String
+
+Conditions:
+  isSSO: !Not [ !Equals [!Ref IdentityProviderMetadataDocument, ""] ]
+  isDNX: !Equals [!Ref DNX, "true"]
+
+Resources:
+  IAMRoleDNXBillingAccess:
+    Condition: isDNX
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: !Sub "${OrgName}DNXBillingAccess"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/job-function/Billing
+      MaxSessionDuration: 43200
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              AWS: "101439088956"
+            Action: "sts:AssumeRole"
+
+  IAMIdentityProvider:
+    Condition: isSSO
+    Type: AWS::IAM::SAMLProvider
+    Properties: 
+      Name: !Sub "${OrgName}-billing-sso"
+      SamlMetadataDocument: !Ref IdentityProviderMetadataDocument
+
+  IAMRoleBillingAccess:
+    Condition: isSSO
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: "BillingAccess"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/job-function/Billing
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref IAMIdentityProvider
+            Action: 'sts:AssumeRoleWithSAML'
+            Condition:
+              StringEquals:
+                'saml:aud': 'https://signin.aws.amazon.com/saml'
+
+Outputs:
+  IdentityProviderMetadataDocument:
+    Description: XML Document provided by your SAML Provider
+    Value: !Ref IdentityProviderMetadataDocument
+    Condition: isSSO
+  IAMRoleBillingAccessArn:
+    Description: BillingAccess IAM Role ARN (to use for SSO)
+    Value: !GetAtt IAMRoleBillingAccess.Arn
+    Condition: isSSO
+  IAMIdentityProviderArn:
+    Description: IdentityProvider ARN
+    Value: !GetAtt IAMIdentityProvider.Arn
+    Condition: isSSO

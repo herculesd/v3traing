@@ -1,0 +1,10 @@
+.env
+.env.auth
+.env.assume
+.terraform
+.terraform-plan*
+.terraform*
+.kube-config
+.one
+encryption-provider-config*.yaml
+**tags

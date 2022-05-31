@@ -1,0 +1,32 @@
+images:
+  gsuite: public.ecr.aws/dnxsolutions/aws-google-auth:latest
+  terraform: public.ecr.aws/dnxsolutions/terraform:1.0.0-dnx1
+  aws: public.ecr.aws/dnxsolutions/aws-v2:2.2.9-dnx1
+
+required_version: ">= 0.7.2"
+
+workspaces:
+  ### AUDIT
+  audit-us-east-2-default:
+    aws_region: us-east-2
+    aws_account_id: "916396898474"      # Audit Account Account Id
+    org_name: v3training                 # Organization Name
+    notifications:
+      endpoint_type: google
+      webhook_google: "https://chat.googleapis.com/v1/spaces/AAAAlOLv4AQ/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=8fVYeUV0DX0K2eHBsJL3Lh2M2-0jKFuIl4CRrXnMS3Q%3D" 
+
+  ### NONPROD
+  nonprod-us-east-2-dev:
+    aws_region: us-east-2
+    aws_account_id: "141553629067"      # Nonprod Account Id
+    org_name: v3training                # Organization Name
+    account_name: nonprod
+    notifications_sns_topic_arn: ""     # from Audit account
+
+  ### PROD
+  prod-us-east-2-default:
+    aws_region: us-east-2
+    aws_account_id: "422314337408"      # Prod Account Id
+    org_name: v3training                # Organization Name
+    account_name: prod
+    notifications_sns_topic_arn: ""     # from Audit account

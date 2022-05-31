@@ -1,0 +1,58 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: "Terraform Backend S3 Bucket (rev:2)"
+
+#====================================================================================================
+Parameters:
+#====================================================================================================
+  OrgName:
+    Type: String
+    Description: Name of Organization to use as bucket prefix
+  RoleARNs:
+    Type: CommaDelimitedList
+    Description: List or Role ARNs to allow writing to the bucket. Usually arn:aws:iam::<account_id>:role/InfraDeployAccess of all member accounts
+  KMSKeyARN:
+    Type: String
+    Description: KMS Key ID or ARN to encrypt objects (leave it blank to use S3 default master key)
+
+Conditions:
+  HasCustomKMS: !Not [!Equals [!Ref KMSKeyARN, ""]]
+    
+#====================================================================================================
+Resources:
+#====================================================================================================
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Sub "${OrgName}-terraform-backend"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'aws:kms'
+              KMSMasterKeyID: !If [HasCustomKMS, !Ref KMSKeyARN, !Ref AWS::NoValue]
+            BucketKeyEnabled: true
+  S3BucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+        Bucket: !Ref S3Bucket
+        PolicyDocument:
+          Statement:
+            - Action:
+                - 's3:GetObject'
+                - 's3:PutObject'
+              Effect: Allow
+              Resource: !Sub 'arn:aws:s3:::${S3Bucket}/*'
+              Principal:
+                AWS: !Ref RoleARNs
+            - Action:
+                - 's3:ListBucket'
+              Effect: Allow
+              Resource: !Sub 'arn:aws:s3:::${S3Bucket}'
+              Principal:
+                AWS: !Ref RoleARNs

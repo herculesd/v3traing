@@ -1,0 +1,83 @@
+images:
+  gsuite: public.ecr.aws/dnxsolutions/aws-google-auth:latest
+  terraform: public.ecr.aws/dnxsolutions/terraform:1.0.0-dnx1
+  aws: public.ecr.aws/dnxsolutions/aws-v2:2.2.9-dnx1
+
+required_version: ">= 0.7.2"
+
+workspaces:
+  ### SHARED
+  shared-services-us-east-2-default:
+    aws_region: us-east-2               # This stack does only IAM, which is a global resource, so region here is not relevant
+    aws_account_id: "955364924205"      # Shared Services Account Id
+    org_name: v3training                # Organization Name
+    baseline_cf_stack_name: "identity-baseline"   # Name of CF stack that creates InfraDeploy and SAMLProvider - usually `identity-baseline`
+    job_function_roles:
+      enabled: true                     # disable when using AWS SSO
+      create_default_roles: false
+    ci_deploy:
+      enabled: true
+      create_user: true                 # only for bitbucket or ci tools that require it
+      create_instance_profile: false    # only for ci tools that run within the account (buildkite, gitlab)
+    ci_deploy_access:
+      enabled: true
+      trust_account_ids:                # will automatically trust ci_deploy role and user if created
+        - "955364924205"                # trust ci_deploy, usually shared-services account
+      trust_arns: []
+    saml_provider:
+      get_from_baseline_cf_stack: true
+    iam_password_policy:
+      enabled: true
+    aws_support_role:
+      enabled: false
+
+  ### PROD
+  prod-us-east-2-default:
+    aws_region: us-east-2               # This stack does only IAM, which is a global resource, so region here is not relevant
+    aws_account_id: "422314337408"      # Prod Account Id
+    org_name: v3training                # Organization Name
+    baseline_cf_stack_name: "identity-baseline"   # Name of CF stack that creates InfraDeploy and SAMLProvider - usually `identity-baseline`
+    job_function_roles:
+      enabled: true                     # disable when using AWS SSO
+      create_default_roles: true
+    ci_deploy:
+      enabled: false
+      create_user: false                # only for bitbucket or ci tools that require it
+      create_instance_profile: false    # only for ci tools that run within the account (buildkite, gitlab)
+    ci_deploy_access:
+      enabled: true
+      trust_account_ids:                # will automatically trust ci_deploy role and user if created
+        - "955364924205"                # trust ci_deploy, usually shared-services account
+      trust_arns: []
+    saml_provider:
+      get_from_baseline_cf_stack: false   # true to get from cloudformation identity-baseline (automatically) or false to insert manually 
+      existing_arn: "arn:aws:iam::422314337408:saml-provider/v3training-sso" # get from IAM/Identity Provider
+    iam_password_policy:
+      enabled: true
+    aws_support_role:
+      enabled: false
+
+  ### NONPROD
+  nonprod-us-east-2-dev:
+    aws_region: us-east-2               # This stack does only IAM, which is a global resource, so region here is not relevant
+    aws_account_id: "141553629067"      # Nonprod Account Id
+    org_name: v3training                # Organization Name
+    baseline_cf_stack_name: "identity-baseline"   # Name of CF stack that creates InfraDeploy and SAMLProvider - usually `identity-baseline`
+    job_function_roles:
+      enabled: true                     # disable when using AWS SSO
+      create_default_roles: true
+    ci_deploy:
+      enabled: false
+      create_user: false                # only for bitbucket or ci tools that require it
+      create_instance_profile: false    # only for ci tools that run within the account (buildkite, gitlab)
+    ci_deploy_access:
+      enabled: true
+      trust_account_ids:                # will automatically trust ci_deploy role and user if created
+        - "955364924205"                # trust ci_deploy, usually shared-services account
+      trust_arns: []
+    saml_provider:
+      get_from_baseline_cf_stack: true
+    iam_password_policy:
+      enabled: true
+    aws_support_role:
+      enabled: false

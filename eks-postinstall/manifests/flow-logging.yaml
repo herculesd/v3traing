@@ -1,0 +1,15 @@
+apiVersion: logging.banzaicloud.io/v1beta1
+kind: Flow
+metadata:
+  name: ${namespace}-flow
+  namespace: ${namespace}
+spec:
+  globalOutputRefs: []
+  localOutputRefs:
+  - ${namespace}-output
+  match:
+  - select:
+      container_names: []
+      hosts: []
+      labels:
+        logging: loki

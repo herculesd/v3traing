@@ -1,0 +1,59 @@
+name: App-Platform-EKS - Terraform Plan
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'app-platform-eks/**'
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_INFRA_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_INFRA_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: us-east-1
+  WORKSPACE_NONPROD: nonprod-us-east-1-dev
+  WORKSPACE_PROD: prod-sa-east-1
+
+jobs:
+  terraform_plan:
+    name: Planning modifications
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Terraform plan - nonprod
+        env:
+          AWS_ACCOUNT_ID: '015312168739'
+          AWS_REGION: us-east-1
+          WORKSPACE: ${{ env.WORKSPACE_NONPROD }}
+        run: |
+          cd app-platform-eks && make init plan
+
+      - name: Archive terraform state artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: .terraform-plan-${{ env.WORKSPACE_NONPROD }}
+          path: app-platform-eks/.terraform-plan-${{ env.WORKSPACE_NONPROD }}
+          if-no-files-found: error
+
+      - name: Terraform plan - prod
+        env:
+          AWS_ACCOUNT_ID: '350882285343'
+          AWS_REGION: sa-east-1
+          WORKSPACE: ${{ env.WORKSPACE_PROD }}
+        run: |
+          cd app-platform-eks && make init plan
+
+      - name: Archive terraform state artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: .terraform-plan-${{ env.WORKSPACE_PROD }}
+          path: app-platform-eks/.terraform-plan-${{ env.WORKSPACE_PROD }}
+          if-no-files-found: error

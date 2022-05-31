@@ -1,0 +1,6 @@
+.env
+.env.auth
+.terraform
+.terraform-plan*
+.one
+secrete.txt

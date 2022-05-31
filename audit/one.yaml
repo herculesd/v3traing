@@ -1,0 +1,60 @@
+images:
+  gsuite: public.ecr.aws/dnxsolutions/aws-google-auth:latest
+  terraform: public.ecr.aws/dnxsolutions/terraform:1.0.0-dnx1
+  aws: public.ecr.aws/dnxsolutions/aws-v2:2.2.9-dnx1
+
+required_version: ">= 0.7.2"
+
+workspaces:
+  # one workspace per region
+  audit-us-east-2-default:
+    aws_region: us-east-2
+    aws_account_id: "916396898474"      # Audit Account Account Id
+    org_name: v3training                 # Organization Name
+    securityhub:
+      enabled: true
+      subscriptions:
+        pci: false
+        cis: false
+        foundational: true
+      members:
+        - account_id: "955364924205"
+          email: "aws+v3training-services@dnxbrasil.com"
+        - account_id: "141553629067"
+          email: "aws+v3training-nonprod@dnxbrasil.com"
+        - account_id: "422314337408"
+          email: "aws+v3training-prod@dnxbrasil.com"
+      alarms:
+        enabled: false
+        email: "aws@dnxbrasil.com"
+        slack_endpoint: https://hooks.slack.com/services/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
+    iam_role_auditor:
+      enabled: true
+      trust_type: saml
+      saml_provider_arn: arn:aws:iam::916396898474:saml-provider/v3training-sso
+    guardduty:
+      enabled: true
+    logs_buckets:
+      transition_to_glacier_in_days: 90
+      allow_from_account_ids: # Accounts allowed to send logs to this account
+        - "955364924205"
+        - "141553629067"
+        - "422314337408"
+    chatbot:
+      enabled: true
+      slack_channel_id: C024E5KC7PV
+      slack_workspace_id: T01GNFY362Z
+    notifications:
+      enabled: false
+      allow_from_account_ids: # Accounts allowed to send SNS notifications to this account
+        - "955364924205"
+        - "141553629067"
+        - "422314337408"
+      email: "aws@dnxbrasil.com"
+      slack_endpoint: https://hooks.slack.com/services/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
+    access_logs_buckets:
+      transition_to_glacier_in_days: 90
+      allow_from_account_ids: # Dictionary of environment and account ids, where the environment is the prefix used in the alb config
+        prod: "422314337408"
+        nonprod: "141553629067"
+        shared: "955364924205"

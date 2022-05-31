@@ -1,0 +1,166 @@
+images:
+  gsuite: public.ecr.aws/dnxsolutions/aws-google-auth:latest
+  terraform: public.ecr.aws/dnxsolutions/terraform:1.0.0-dnx1
+  aws: public.ecr.aws/dnxsolutions/aws-v2:2.2.9-dnx1
+
+required_version: ">= 0.7.2"
+
+workspaces:
+  shared-services-us-east-2-default:
+    aws_region: us-east-2
+    aws_account_id: "955364924205"      # Shared Services Account Id
+    org_name: v3training                # Organization Name
+    account_name: shared-services
+    account_alias: true                 # Create account alias using account_name as value
+    notifications_sns_topic_arn: ""     # from Audit account
+    domain:
+      enabled: false
+      zones: []
+    acm:
+      certificates: []
+    network:
+      enabled: false
+      name: shared-services
+      vpc_cidr: 10.37.0.0/16
+      vpc_newbits: 5                    # size of subnets:  16 + 5 = /21
+      multi_nat: false
+      transit_subnet: false
+      peering: []
+    vpn:
+      enabled: false                     # requires network.enabled
+    ecs:
+      create_iam_service_linked_role: false
+      clusters: []
+      apps: []
+      workers: []
+    frontend:
+      bucket_kms_key_arn: ""
+      apps: []
+    ecr:
+      trust_account_ids:
+        - "422314337408"    # Prod
+        - "141553629067"    # Nonprod
+      repositories:
+        - name: "webserver"
+    ssm:
+      strings: {}
+      secured_strings: []
+    backups:
+      enabled: false
+    log_exporter:
+      enabled: false
+
+  ### NONPROD
+  nonprod-us-east-2-dev:
+    aws_region: us-east-2
+    aws_account_id: "141553629067"      # Nonprod Account Id
+    org_name: v3training                # Organization Name
+    account_name: nonprod
+    account_alias: true                 # Create account alias using account_name as value
+    notifications_sns_topic_arn: ""     # from Audit account
+    domain:
+      enabled: true
+      zones:
+      - route53_domain: dev.cloud.v3training.dnxbrasil.com
+        private: false
+    acm:
+      certificates:
+      - name: default
+        domain_names:
+        - dev.cloud.v3training.dnxbrasil.com
+        - "*.dev.cloud.v3training.dnxbrasil.com"
+        hosted_zone: dev.cloud.v3training.dnxbrasil.com
+    network:
+      enabled: true
+      name: nonprod
+      vpc_cidr: 10.47.0.0/16
+      vpc_newbits: 4                    # size of subnets:  16 + 4 = /20
+      multi_nat: false
+      transit_subnet: false
+      public_subnet: true
+      peering: []
+    vpn:
+      enabled: true                     # requires network.enabled
+      name: 'nonprod-vpn'
+      hosted_zone: 'dev.cloud.v3training.dnxbrasil.com'     # only Public zones
+      domain_name: 'openvpn.dev.cloud.v3training.dnxbrasil.com'
+      route_push: '10.47.0.0 255.255.0.0'
+      instance_types: ['t3a.micro', 't3.micro', 't2.micro']
+    ecs:
+      create_iam_service_linked_role: true
+      clusters: []
+      apps: []
+      workers: []
+    frontend:
+      bucket_kms_key_arn: ""
+      apps: []
+    ecr:
+      trust_account_ids: []
+      repositories: []
+    ssm:
+      strings: {}
+      secured_strings: []
+    backups:
+      enabled: false
+    log_exporter:
+      enabled: true
+      cloudwatch_logs_export_bucket: "v3training-audit-logs-us-east-2"
+
+
+  ### PROD
+  prod-us-east-2-default:
+    aws_region: us-east-2
+    aws_account_id: "422314337408"      # Prod Account Id
+    org_name: v3training                # Organization Name
+    account_name: prod
+    account_alias: true                 # Create account alias using account_name as value
+    notifications_sns_topic_arn: ""     # from Audit account
+    domain:
+      enabled: true
+      zones:
+      - route53_domain: prod.cloud.v3training.dnxbrasil.com
+        private: false                  # Changing this param requires tainting the resource
+    acm:
+      certificates:
+      - name: default
+        domain_names:
+        - prod.cloud.v3training.dnxbrasil.com
+        - "*.prod.cloud.v3training.dnxbrasil.com"
+        hosted_zone: prod.cloud.v3training.dnxbrasil.com
+    network:
+      enabled: true
+      name: prod
+      vpc_cidr: 10.57.0.0/16
+      vpc_newbits: 4                    # size of subnets:  16 + 4 = /20
+      multi_nat: false
+      transit_subnet: false
+      public_subnet: true
+      peering: []
+    vpn:
+      enabled: true
+      name: 'prod-vpn'
+      hosted_zone: 'prod.cloud.v3training.dnxbrasil.com'     # only Public zones
+      domain_name: 'openvpn.prod.cloud.v3training.dnxbrasil.com'
+      route_push: '10.57.0.0 255.255.0.0'
+      instance_types: ['t3a.micro', 't3.micro', 't2.micro']
+    ecs:
+      create_iam_service_linked_role: true
+      clusters: []
+      apps: []
+      workers: []
+    frontend:
+      bucket_kms_key_arn: ""
+      apps: []
+    ecr:
+      trust_account_ids: []
+      repositories: []
+    ssm:
+      strings: {}
+      secured_strings: []
+    backups:
+      enabled: false
+      name: "prod"
+      rule_schedule: "cron(0 5 * * ? *)" # 5:00 UTC -> 2:00 (GMT-3) (http://crontab.org/)
+    log_exporter:
+      enabled: true
+      cloudwatch_logs_export_bucket: "v3training-audit-logs-us-east-2"

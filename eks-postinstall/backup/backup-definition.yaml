@@ -1,0 +1,38 @@
+apiVersion: resources.cattle.io/v1
+controllerReferences:
+- apiVersion: apps/v1
+  name: rancher
+  namespace: cattle-system
+  resource: deployments
+kind: ResourceSet
+metadata:
+  name: backup-${namespace}
+resourceSelectors:
+- apiVersion: apps/v1
+  kindsRegexp: ^deployments$
+  namespaces:
+  - ${namespace}
+- apiVersion: networking.k8s.io/v1
+  kindsRegexp: ^Ingress$
+  namespaces:
+  - ${namespace}
+- apiVersion: v1
+  kindsRegexp: ^Service$
+  namespaces:
+  - ${namespace}
+- apiVersion: v1
+  kindsRegexp: ^ConfigMap$
+  namespaces:
+  - ${namespace}
+- apiVersion: v1
+  kindsRegexp: ^Secret$
+  namespaces:
+  - ${namespace}
+- apiVersion: batch/v1beta1
+  kindsRegexp: ^CronJob$
+  namespaces:
+  - ${namespace}
+- apiVersion: autoscaling/v2beta1
+  kindsRegexp: ^HorizontalPodAutoscaler$
+  namespaces:
+  - ${namespace}  
